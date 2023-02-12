@@ -33,7 +33,7 @@ int main()
 
     for(int i=0 ; i<n ; i++)
     {
-        if(indegree[i] == n  &&  outdegree[i] == 1)
+        if(indegree[i] == n  &&  outdegree[i] == 1)    /// everyone knows him/her  &&  only knows him/herself
         {
             cout << i << " is the celeb" << endl;
             return 0;
