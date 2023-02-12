@@ -13,7 +13,7 @@ bool DFS(int (*arr)[100], int v, int color, int colors[], int nodes)
         cout << colors[i] << "  ";
     }
     puts("");
-
+             
     for (int i = 0; i < nodes; i++)
     {
         if (arr[v][i] == 1)
