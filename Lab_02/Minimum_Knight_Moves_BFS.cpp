@@ -1,93 +1,119 @@
-#include<iostream>
-#include <set>
-#include <queue>
-#include <climits>
+#include<bits/stdc++.h>
 using namespace std;
 
-int row[] = { 2, 2, -2, -2, 1, 1, -1, -1 };            // all the possible movements of a knight
-int col[] = { -1, 1, 1, -1, 2, -2, 2, -2 };
+int xMoves[] = { 2, 2, -2, -2, 1, 1, -1, -1 };            /// all the possible movements of a knight
+int yMoves[] = { -1, 1, 1, -1, 2, -2, 2, -2 };
 
-bool isValid(int x, int y, int N) 
-{
-    return (x >= 0 && x < N) && (y >= 0 && y < N);
-}
 
-struct Node
+class Node         /// A node of an N-ary tree
 {
-    int x, y, min_distance;
- 
-    Node(int x, int y, int min_distance = 0):
-    x(x), y(y), min_distance(min_distance) {}
- 
-    bool operator<(const Node& o) const 
+public:
+
+    int x, y, distance;
+
+    Node(int x, int y, int distance):
+    x(x), y(y), distance(distance) {}
+
+};
+
+
+class Tree
+{
+public:                                 ///  in case we want to run a lot of cases : shared_ptr
+
+    vector<shared_ptr<Node>> nodes;   /// to have all the possible moves
+
+    Tree(){}
+
+    void addNode(shared_ptr<Node> child)
     {
-        return x < o.x || (x == o.x && y < o.y);
+        nodes.push_back(child);
+    }
+
+    bool CheckInsideBoard(int x, int y)   /// checking the validity of the coordinates
+    {
+        if(x>=0 && x<8 && y>=0 && y<8)
+            return true;
+
+        return false;
+    }
+
+    int MinimumSteps(int startX, int startY, int endX, int endY)  /// calculating the minimum steps
+    {
+        if(!CheckInsideBoard(startX, startY) )
+        {
+            cout << "Position outside the board" << endl;
+        }
+
+        /// creating nodes
+        shared_ptr<Node> root(new Node(startX, startY, 0) );  ///  initializing the distance as 0
+
+        shared_ptr<Tree> tree(new Tree);
+
+        shared_ptr<Node> currentNode;
+
+        int x, y;
+        bool endGoalReached = false;
+
+        vector<vector<bool>> visited(8, vector<bool>(8, false));  /// Matrix to keep track of visited cells in chess board
+
+        visited[root->x][root->y] = true;    /// the root cell is visited (by default)
+
+        const int numberOfPossibleMoves = 8;
+        int nodeNumber = 0;
+
+        currentNode = root;       /// the current node is the root node
+
+        while(!endGoalReached)
+        {
+            if(currentNode->x == endX  &&  currentNode->y == endY)
+            {
+                visited.clear();
+                return currentNode->distance;
+            }
+
+            for(int i=0 ; i < numberOfPossibleMoves ; i++)
+            {
+                x = currentNode->x + xMoves[i];        /// getting all the possible moves
+                y = currentNode->y + yMoves[i];
+
+                if(CheckInsideBoard(x, y)  &&  !visited[x][y] )    /// if one of the possible moves is not visited...
+                {                                                 ///  and it's inside the board --> we insert it into the tree
+                    visited[x][y] = true;
+
+                    shared_ptr<Node> newNode( new Node(x, y, currentNode->distance + 1) );   /// one of the new moves that's possible
+
+                    tree->addNode(newNode);       /// adding it to the tree
+                }
+
+            }
+
+            currentNode = tree->nodes[nodeNumber++];   /// setting the current node to the next possible move/node in the tree
+
+        }
+
+        visited.clear();                    /// clearing memory
+
+        return -1;
     }
 
 };
 
 
-int findShortestDistance(int N, Node src, Node destination)
-{
-    set<Node> visited;
- 
-    queue<Node> q;
-    q.push(src);
- 
-    while (!q.empty())
-    {
-        Node node = q.front();
-        q.pop();
- 
-        int x = node.x;
-        int y = node.y;
-        int min_distance = node.min_distance;
- 
-        // if the destination is reached, return distance
-        if (x == destination.x  &&  y == destination.y) {
-            return min_distance;
-        }
- 
-        // if the location is not visited yet
-        if (!visited.count(node))
-        {
-            visited.insert(node);               // mark the current node as visited
-
-            for (int i = 0; i < 8; i++)        // check for all eight possible movements for a knight (pushing it if there's any)
-            {                                 //  basically checking for unexplored nodes
-
-                int new_x = x + row[i];       //  getting the next valid positions
-                int new_y = y + col[i];
- 
-                if (isValid(new_x, new_y, N)) 
-                {
-                    q.push({new_x, new_y, min_distance + 1});
-                }
-            }
-        }
-    }
- 
-    return 0;
-
-}
-
 
 int main()
 {
-    int t;
-    cin >> t;
+    Tree tree;
 
-    while(t--)
-    {
-        string from, to;
-        cin >> from >> to;
+    string from, to;
+    cin >> from >> to;
 
-        Node source = { (from[0]-'a'), (from[1]-'1') };
+    cout << "Minimum moves: " << tree.MinimumSteps( (from[0]-'a'), (from[1]-'1'), (to[0]-'a'), (to[1]-'1')) << endl;
 
-        Node destination = { (to[0]-'a'), (to[1]-'1') };
-
-        cout << findShortestDistance(8, source, destination) << endl;
-    }
-    
     return 0;
 }
+
+
+///  Here, we are adding all the possible nodes/moves into the tree...
+///  Then we are doing a Breadth-First-Search to find the node/move that will match with destination node
+
